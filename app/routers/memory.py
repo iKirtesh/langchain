@@ -81,4 +81,5 @@ async def memory_run_endpoint(
         return {"turns": logs}
     except Exception as e:
         logger.error(f"Memory test error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        from app.dependencies import format_api_error
+        raise HTTPException(status_code=400, detail=format_api_error(e))

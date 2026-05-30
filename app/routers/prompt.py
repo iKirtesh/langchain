@@ -62,4 +62,5 @@ async def prompt_run_endpoint(
         }
     except Exception as e:
         logger.error(f"Prompt chain error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        from app.dependencies import format_api_error
+        raise HTTPException(status_code=400, detail=format_api_error(e))

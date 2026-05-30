@@ -14,6 +14,12 @@ export const PROVIDER_MODELS = {
     groq: [
         { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B (State-of-the-Art)" },
         { value: "mixtral-8x7b-32768", label: "Mixtral 8x7B (High Context)" }
+    ],
+    ollama: [
+        { value: "llama3", label: "Llama 3 (Local LLM)" },
+        { value: "mistral", label: "Mistral (Local LLM)" },
+        { value: "phi3", label: "Phi-3 (Local LLM)" },
+        { value: "gemma2", label: "Gemma 2 (Local LLM)" }
     ]
 };
 

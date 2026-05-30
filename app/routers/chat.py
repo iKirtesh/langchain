@@ -48,8 +48,38 @@ async def chat_endpoint(
                 langchain_messages.append(SystemMessage(content=msg.content))
                 
         # Invoke model
-        response = await model.ainvoke(langchain_messages)
-        return {"content": response.content}
+        try:
+            response = await model.ainvoke(langchain_messages)
+            return {"content": response.content}
+        except Exception as e:
+            err_str = str(e)
+            if payload.provider == "google" and ("RESOURCE_EXHAUSTED" in err_str or "429" in err_str):
+                import os
+                groq_key = x_groq_key or os.getenv("GROQ_API_KEY")
+                if groq_key:
+                    logger.info("Google Gemini rate-limited. Automatically failing over to Groq...")
+                    try:
+                        failover_model = get_chat_model(
+                            provider="groq",
+                            model_name="llama-3.3-70b-versatile",
+                            temperature=payload.temperature,
+                            groq_key=groq_key
+                        )
+                        response = await failover_model.ainvoke(langchain_messages)
+                        failover_note = (
+                            f"{response.content}\n\n"
+                            "*(Note: Google Gemini API was rate-limited, so the system automatically failed over to Groq Llama-3.3-70B in real-time to complete your request.)*"
+                        )
+                        return {"content": failover_note}
+                    except Exception as failover_err:
+                        logger.error(f"Failover to Groq failed: {failover_err}")
+            
+            logger.error(f"Chat error: {e}", exc_info=True)
+            from app.dependencies import format_api_error
+            raise HTTPException(status_code=400, detail=format_api_error(e))
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Chat error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Chat setup error: {e}", exc_info=True)
+        from app.dependencies import format_api_error
+        raise HTTPException(status_code=400, detail=format_api_error(e))

@@ -49,25 +49,52 @@ export async function refreshIndexedDocuments() {
         const list = await res.json();
         
         const container = document.getElementById("indexed-files-list");
+        const gridContainer = document.getElementById("rag-chunk-grid");
+
         if (!list || list.length === 0) {
-            container.innerHTML = `<div class="empty-list-state">No documents indexed yet.</div>`;
+            if (container) container.innerHTML = `<div class="empty-list-state">No documents indexed yet.</div>`;
+            if (gridContainer) gridContainer.innerHTML = `<div class="empty-grid-state">No active document vectors.</div>`;
             return;
         }
         
-        container.innerHTML = "";
-        list.forEach(doc => {
-            const kbSize = (doc.size_bytes / 1024).toFixed(1);
-            const item = document.createElement("div");
-            item.className = "file-item";
-            item.innerHTML = `
-                <div class="file-name-meta">
-                    <h5>${doc.filename}</h5>
-                    <span>Size: ${kbSize} KB • ${doc.store_type}</span>
-                </div>
-                <div class="file-chunks-badge">${doc.chunks_count} chunks</div>
-            `;
-            container.appendChild(item);
-        });
+        // 1. Render files list
+        if (container) {
+            container.innerHTML = "";
+            list.forEach(doc => {
+                const kbSize = (doc.size_bytes / 1024).toFixed(1);
+                const item = document.createElement("div");
+                item.className = "file-item";
+                item.innerHTML = `
+                    <div class="file-name-meta">
+                        <h5>${doc.filename}</h5>
+                        <span>Size: ${kbSize} KB • ${doc.store_type}</span>
+                    </div>
+                    <div class="file-chunks-badge">${doc.chunks_count} chunks</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // 2. Render visual Chunk Grid Map
+        if (gridContainer) {
+            gridContainer.innerHTML = "";
+            let totalChunks = 0;
+            list.forEach(doc => {
+                totalChunks += doc.chunks_count;
+            });
+
+            for (let i = 0; i < totalChunks; i++) {
+                const block = document.createElement("div");
+                block.className = "chunk-block";
+                block.textContent = i + 1;
+                block.setAttribute("data-chunk-idx", i);
+                block.title = `Document Chunk #${i} - Status: Stored in InMemoryVectorStore`;
+                block.addEventListener("click", () => {
+                    showAlert(`Document Chunk #${i} selected. Ask a search query to trace its relevance.`);
+                });
+                gridContainer.appendChild(block);
+            }
+        }
     } catch (err) {
         console.error("Unable to pull loaded docs", err);
     }
@@ -83,6 +110,12 @@ export async function handleRAGSend() {
     
     const botId = appendMessage("rag", `<div class="loading-spinner"></div> Searching store and answering...`, "rag-messages-container", true);
     
+    // Clear previous matched states
+    document.querySelectorAll(".chunk-block").forEach(block => {
+        block.classList.remove("matched");
+        block.title = `Document Chunk #${block.getAttribute("data-chunk-idx")}`;
+    });
+
     try {
         const response = await fetch("/api/rag/query", {
             method: "POST",
@@ -107,7 +140,14 @@ export async function handleRAGSend() {
             fullAnswer += `\n\n<div class="source-container"><div class="source-title">Retrieved Reference Chunks:</div><div class="source-badges">`;
             data.sources.forEach(src => {
                 const escapedContent = src.content.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                fullAnswer += `<span class="source-badge" title="${escapedContent}" onclick="alert('----- Chunk Content (Source: ${src.source}, Chunk #${src.chunk}) -----\\n\\n${escapedContent}')">📄 ${src.source} [C#${src.chunk}]</span>`;
+                fullAnswer += `<span class="source-badge" title="${escapedContent}" onclick="alert('----- Chunk Content (Source: ${src.source}, Chunk #${src.chunk}, Match: ${src.score}%) -----\\n\\n${escapedContent}')">📄 ${src.source} [C#${src.chunk}] (${src.score}%)</span>`;
+                
+                // Highlight corresponding block in visual grid
+                const block = document.querySelector(`.chunk-block[data-chunk-idx="${src.chunk}"]`);
+                if (block) {
+                    block.classList.add("matched");
+                    block.title = `Retrieval Match! Relevance Score: ${src.score}%`;
+                }
             });
             fullAnswer += `</div></div>`;
         }

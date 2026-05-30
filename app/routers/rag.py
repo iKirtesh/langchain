@@ -80,17 +80,30 @@ async def rag_query_endpoint(
                 "sources": []
             }
             
-        docs = vs.similarity_search(payload.query, k=3)
+        docs_and_scores = vs.similarity_search_with_score(payload.query, k=3)
         
         # 2. Build context
         context_blocks = []
         sources = []
-        for idx, doc in enumerate(docs):
+        for idx, (doc, score) in enumerate(docs_and_scores):
             src_name = doc.metadata.get("source", "Unknown")
-            context_blocks.append(f"--- Document: {src_name} (Chunk {doc.metadata.get('chunk_index', idx)}) ---\n{doc.page_content}")
+            chunk_idx = doc.metadata.get("chunk_index", idx)
+            # Safe parsing of distance scores to similarity percentages
+            try:
+                raw_score = float(score)
+                # If score is very small or standard cosine distance (0.0 means identical)
+                if raw_score <= 1.0:
+                    similarity = round((1.0 - raw_score) * 100, 1)
+                else:
+                    similarity = round((1.0 / (1.0 + raw_score)) * 100, 1)
+            except Exception:
+                similarity = 80.0 # safe default fallback
+
+            context_blocks.append(f"--- Document: {src_name} (Chunk {chunk_idx}) ---\n{doc.page_content}")
             sources.append({
                 "source": src_name,
-                "chunk": doc.metadata.get('chunk_index', idx),
+                "chunk": chunk_idx,
+                "score": similarity,
                 "content": doc.page_content
             })
             
@@ -122,4 +135,5 @@ async def rag_query_endpoint(
         }
     except Exception as e:
         logger.error(f"RAG query error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        from app.dependencies import format_api_error
+        raise HTTPException(status_code=400, detail=format_api_error(e))

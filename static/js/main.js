@@ -9,17 +9,34 @@ import { handleFileUpload, refreshIndexedDocuments, handleRAGSend } from "./rag.
 import { handleAgentRun } from "./agent.js";
 import { handleChainRun } from "./prompt.js";
 import { handleMemoryRun } from "./memory.js";
+import { initExtractionModule } from "./extraction.js";
 
 // ==========================================================================
 // Initialization
 // ==========================================================================
-document.addEventListener("DOMContentLoaded", () => {
-    initUI();
-    setupEventListeners();
-    updateModelDropdown();
-    loadKeysFromStorage();
-    refreshIndexedDocuments();
-});
+function startApp() {
+    try {
+        console.log("Initializing LangChain Complete Showcase...");
+        initUI();
+        setupEventListeners();
+        updateModelDropdown();
+        loadKeysFromStorage();
+        refreshIndexedDocuments();
+        initExtractionModule();
+        console.log("Initialization complete!");
+    } catch (e) {
+        console.error("Initialization failed:", e);
+        if (typeof window.onerror === "function") {
+            window.onerror(e.message, "js/main.js", 0, 0, e);
+        }
+    }
+}
+
+if (document.readyState === "complete") {
+    startApp();
+} else {
+    window.addEventListener("load", startApp);
+}
 
 // Initialize UI elements
 function initUI() {
@@ -202,7 +219,7 @@ function setupEventListeners() {
     if (runAgentBtn) runAgentBtn.addEventListener("click", handleAgentRun);
     
     // Wire presets
-    const presets = document.querySelectorAll(".preset-btn");
+    const presets = document.querySelectorAll(".presets-container .preset-btn");
     presets.forEach(p => {
         p.addEventListener("click", () => {
             const query = p.getAttribute("data-query");
@@ -262,13 +279,24 @@ function updateModelDropdown() {
         modelSelect.innerHTML = "";
         
         const models = PROVIDER_MODELS[state.activeProvider] || [];
-        models.forEach(model => {
+        models.forEach((model, index) => {
             const opt = document.createElement("option");
             opt.value = model.value;
             opt.textContent = model.label;
+            if (model.value === state.activeModel || (index === 0 && !state.activeModel)) {
+                opt.selected = true;
+            }
             modelSelect.appendChild(opt);
         });
         
-        state.activeModel = modelSelect.value;
+        if (models.length > 0) {
+            const hasActiveModel = models.some(m => m.value === state.activeModel);
+            if (!hasActiveModel) {
+                state.activeModel = models[0].value;
+            }
+            modelSelect.value = state.activeModel;
+        } else {
+            state.activeModel = "";
+        }
     }
 }

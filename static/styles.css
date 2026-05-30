@@ -1255,3 +1255,171 @@ body {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* ==========================================================================
+   MODULES EXPANSIONS: CHUNK GRID & STRUCTURED EXTRACTION
+   ========================================================================== */
+
+/* 1. Semantic Chunk Grid Map */
+.chunk-grid-container {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.85rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.chunk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+    gap: 0.45rem;
+}
+
+.chunk-block {
+    aspect-ratio: 1 / 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    font-family: var(--font-mono);
+}
+
+.chunk-block:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.15);
+    color: var(--text-main);
+    z-index: 5;
+}
+
+/* Glowing Match State */
+.chunk-block.matched {
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-color: var(--accent-green) !important;
+    color: #34d399 !important;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.4), inset 0 0 4px rgba(16, 185, 129, 0.2);
+    animation: chunkPulse 2s infinite ease-in-out;
+}
+
+@keyframes chunkPulse {
+    0% { transform: scale(1); box-shadow: 0 0 10px rgba(16, 185, 129, 0.35); }
+    50% { transform: scale(1.1); box-shadow: 0 0 18px rgba(16, 185, 129, 0.6); }
+    100% { transform: scale(1); box-shadow: 0 0 10px rgba(16, 185, 129, 0.35); }
+}
+
+.empty-grid-state {
+    font-size: 0.75rem;
+    color: var(--text-dark);
+    font-style: italic;
+    text-align: center;
+    padding: 1.5rem 0.5rem;
+    grid-column: 1 / -1;
+}
+
+/* 2. Structured JSON Data Extraction Workspace */
+.extract-workspace {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 1.5rem;
+    height: calc(100% - 80px);
+}
+
+.extract-left-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.extract-left-panel textarea {
+    resize: none;
+    font-family: var(--font-sans);
+    line-height: 1.45;
+}
+
+.extract-right-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.extraction-results {
+    flex: 1;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.25rem;
+    position: relative;
+}
+
+/* Modern Extraction Result Table */
+.extract-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.extract-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    text-align: left;
+}
+
+.extract-table th {
+    background: rgba(99, 102, 241, 0.08);
+    color: #a5b4fc;
+    padding: 0.65rem 0.85rem;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.extract-table td {
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.extract-table tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.extract-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Raw Code view card */
+.raw-json-card {
+    background: #040508;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
+    padding: 0.85rem;
+    margin-top: 1rem;
+}
+
+.raw-json-card h4 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+    margin-bottom: 0.5rem;
+}
+
+.raw-json-card pre {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+}

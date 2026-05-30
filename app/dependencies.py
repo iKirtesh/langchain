@@ -111,20 +111,35 @@ def get_chat_model(
     if provider == "google":
         key = google_key or os.getenv("GOOGLE_API_KEY")
         if not key:
-            raise HTTPException(status_code=400, detail="Google API Key missing. Please provide it in settings.")
-        return ChatGoogleGenerativeAI(model=model_name, temperature=temperature, google_api_key=key)
+            raise HTTPException(status_code=400, detail="Google API Key missing. Please provide it in settings panel.")
+        return ChatGoogleGenerativeAI(model=model_name, temperature=temperature, google_api_key=key, max_retries=0)
         
     elif provider == "openai":
         key = openai_key or os.getenv("OPENAI_API_KEY")
         if not key:
-            raise HTTPException(status_code=400, detail="OpenAI API Key missing. Please provide it in settings.")
-        return ChatOpenAI(model=model_name, temperature=temperature, api_key=key)
+            raise HTTPException(status_code=400, detail="OpenAI API Key missing. Please provide it in settings panel.")
+        return ChatOpenAI(model=model_name, temperature=temperature, api_key=key, max_retries=0)
         
     elif provider == "groq":
         key = groq_key or os.getenv("GROQ_API_KEY")
         if not key:
-            raise HTTPException(status_code=400, detail="Groq API Key missing. Please provide it in settings.")
-        return ChatGroq(model=model_name, temperature=temperature, groq_api_key=key)
+            raise HTTPException(status_code=400, detail="Groq API Key missing. Please provide it in settings panel.")
+        return ChatGroq(model=model_name, temperature=temperature, groq_api_key=key, max_retries=0)
+        
+    elif provider == "ollama":
+        from langchain_community.chat_models import ChatOllama
+        return ChatOllama(model=model_name, temperature=temperature)
         
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported LLM provider: {provider}")
+
+def format_api_error(e: Exception) -> str:
+    err_str = str(e)
+    if "RESOURCE_EXHAUSTED" in err_str or "429" in err_str:
+        return (
+            "⚠️ Google Gemini API Quota Exceeded (Free tier limit: 20 requests per minute).\n\n"
+            "Please wait 30 seconds for your rate limit to reset, or switch to Groq or local Ollama in the sidebar config!"
+        )
+    if "API_KEY_INVALID" in err_str or "invalid api key" in err_str.lower() or "authentication" in err_str.lower():
+        return "🔑 Invalid API Key. Please verify the API key provided in your settings panel or .env configuration."
+    return err_str
