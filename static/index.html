@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LangChain Complete Showcase</title>
+    <!-- Modern Typography: Google Fonts Outfit, Inter and Fira Code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon"></div>
+                <div class="brand-text">
+                    <h1>LangChain</h1>
+                    <span class="badge">Complete Showcase</span>
+                </div>
+            </div>
+
+            <!-- Global Configuration Settings -->
+            <div class="sidebar-section">
+                <h3>Global Config</h3>
+                <div class="config-group">
+                    <label for="global-provider">Active Provider</label>
+                    <select id="global-provider">
+                        <option value="google" selected>Google GenAI</option>
+                        <option value="openai">OpenAI</option>
+                        <option value="groq">Groq</option>
+                    </select>
+                </div>
+                
+                <div class="config-group">
+                    <label for="global-model">Model Selection</label>
+                    <select id="global-model">
+                        <!-- Populated dynamically via JS based on Provider selection -->
+                    </select>
+                </div>
+
+                <div class="config-group">
+                    <label for="global-temp">Temperature: <span id="temp-val">0.7</span></label>
+                    <input type="range" id="global-temp" min="0" max="2" step="0.1" value="0.7">
+                </div>
+            </div>
+
+            <!-- API Keys Section -->
+            <div class="sidebar-section">
+                <div class="collapsible-header collapsed" id="keys-toggle">
+                    <h3>API Keys (Optional)</h3>
+                    <span class="chevron">▼</span>
+                </div>
+                <div class="collapsible-content collapsed" id="keys-content">
+                    <div class="config-group">
+                        <label for="key-google">Google API Key</label>
+                        <input type="password" id="key-google" placeholder="AIzaSy... (or from .env)">
+                    </div>
+                    <div class="config-group">
+                        <label for="key-openai">OpenAI API Key</label>
+                        <input type="password" id="key-openai" placeholder="sk-proj-... (or from .env)">
+                    </div>
+                    <div class="config-group">
+                        <label for="key-groq">Groq API Key</label>
+                        <input type="password" id="key-groq" placeholder="gsk_... (or from .env)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- NAVIGATION -->
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="chat-tab">
+                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    Model Chat
+                </button>
+                <button class="nav-item" data-tab="rag-tab">
+                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Document RAG
+                </button>
+                <button class="nav-item" data-tab="agent-tab">
+                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                        <rect x="9" y="9" width="6" height="6"></rect>
+                        <line x1="9" y1="1" x2="9" y2="4"></line>
+                        <line x1="15" y1="1" x2="15" y2="4"></line>
+                        <line x1="9" y1="20" x2="9" y2="23"></line>
+                        <line x1="15" y1="20" x2="15" y2="23"></line>
+                        <line x1="20" y1="9" x2="23" y2="9"></line>
+                        <line x1="20" y1="15" x2="23" y2="15"></line>
+                        <line x1="1" y1="9" x2="4" y2="9"></line>
+                        <line x1="1" y1="15" x2="4" y2="15"></line>
+                    </svg>
+                    AI Agents & Tools
+                </button>
+                <button class="nav-item" data-tab="prompt-tab">
+                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="4 17 10 11 4 5"></polyline>
+                        <line x1="12" y1="19" x2="20" y2="19"></line>
+                    </svg>
+                    Prompt Playground
+                </button>
+                <button class="nav-item" data-tab="memory-tab">
+                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                        <path d="M12 6v6l4 2"></path>
+                    </svg>
+                    Memory Inspector
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="dot pulse-green"></span>
+                    <span>Backend Running</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN DASHBOARD CONTENT AREA -->
+        <main class="main-content">
+            
+            <!-- 1. MODEL CHAT PLAYGROUND -->
+            <section id="chat-tab" class="tab-panel active">
+                <header class="panel-header">
+                    <h2>LLM Chat Playground</h2>
+                    <p>Direct integration with LangChain Chat Models. Test system prompts, model behaviors, and context responses.</p>
+                </header>
+                
+                <div class="chat-workspace">
+                    <div class="chat-settings">
+                        <div class="glass-card">
+                            <h3>Chat Parameters</h3>
+                            <div class="config-group">
+                                <label for="chat-system-prompt">System Prompt / Role</label>
+                                <textarea id="chat-system-prompt" rows="4" placeholder="You are a poetic, concise AI assistant who replies in rhymes."></textarea>
+                            </div>
+                            <button id="clear-chat-btn" class="btn secondary">Clear History</button>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-window glass-card">
+                        <div class="chat-messages" id="chat-messages-container">
+                            <div class="message system-msg">
+                                <div class="avatar">SYS</div>
+                                <div class="msg-bubble">
+                                    System initialized. Select your provider and configure parameters in the sidebar. Ready to test LangChain Chat.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <textarea id="chat-input" placeholder="Type a message..." rows="2"></textarea>
+                            <button id="send-chat-btn" class="btn primary">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. DOCUMENT RAG -->
+            <section id="rag-tab" class="tab-panel">
+                <header class="panel-header">
+                    <h2>Retrieval-Augmented Generation (RAG)</h2>
+                    <p>Upload text files and search semantics in real-time. Powering queries with LangChain's <code>InMemoryVectorStore</code>.</p>
+                </header>
+
+                <div class="rag-workspace">
+                    <!-- Left: Upload & Document Indexer -->
+                    <div class="rag-sidebar">
+                        <div class="glass-card">
+                            <h3>Document Indexer</h3>
+                            <div class="dropzone" id="file-dropzone">
+                                <div class="drop-icon"></div>
+                                <p>Drag & Drop a <code>.txt</code> or <code>.md</code> file</p>
+                                <span>or click to browse</span>
+                                <input type="file" id="file-input" accept=".txt,.md" style="display: none;">
+                            </div>
+
+                            <div class="rag-settings-mini">
+                                <div class="config-group-row">
+                                    <div>
+                                        <label for="rag-chunk-size">Chunk Size</label>
+                                        <input type="number" id="rag-chunk-size" value="500">
+                                    </div>
+                                    <div>
+                                        <label for="rag-chunk-overlap">Overlap</label>
+                                        <input type="number" id="rag-chunk-overlap" value="50">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Indexed Files</h4>
+                            <div class="file-list" id="indexed-files-list">
+                                <div class="empty-list-state">No documents indexed yet.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: QA over Documents -->
+                    <div class="rag-qa-area glass-card">
+                        <div class="rag-chat-messages" id="rag-messages-container">
+                            <div class="message system-msg">
+                                <div class="avatar">RAG</div>
+                                <div class="msg-bubble">
+                                    RAG mode active. Any query sent here will search the indexed document vectors in real-time and synthesize answers.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <textarea id="rag-input" placeholder="Ask a question about the uploaded document..." rows="2"></textarea>
+                            <button id="send-rag-btn" class="btn primary">Search & QA</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. AI AGENTS & TOOLS -->
+            <section id="agent-tab" class="tab-panel">
+                <header class="panel-header">
+                    <h2>LangChain Agents & Tool Calling</h2>
+                    <p>Run a smart agent with math engines, simulated search tools, and custom science search tools. View the agent's real-time internal thought loop.</p>
+                </header>
+
+                <div class="agent-workspace">
+                    <div class="agent-controls glass-card">
+                        <h3>Agent Core Console</h3>
+                        <p class="description">Select a preset prompt or type a custom task for the agent. The agent will analyze the task, call appropriate tools, and arrive at an answer.</p>
+                        
+                        <div class="presets-container">
+                            <span class="preset-label">Example Tasks:</span>
+                            <button class="preset-btn" data-query="Calculate this expression: (42 * 12) + (144 / 3)">Solve Math Problem</button>
+                            <button class="preset-btn" data-query="Can you search for the current weather in New York and the latest SpaceX launch status?">Get Multi-Source Info</button>
+                            <button class="preset-btn" data-query="Explain quantum entanglement and look up photosynthesis to contrast their core mechanisms.">Research Science Concepts</button>
+                        </div>
+
+                        <div class="agent-custom-query">
+                            <textarea id="agent-query-input" rows="3" placeholder="Enter a custom complex task involving web search, calculations, or science lookup..."></textarea>
+                            <button id="run-agent-btn" class="btn primary">Execute Agent</button>
+                        </div>
+
+                        <div class="tools-showcase">
+                            <h4>Equipped Agent Tools</h4>
+                            <div class="tools-grid">
+                                <div class="tool-card">
+                                    <h5>Calculator</h5>
+                                    <span>evaluates custom mathematical expressions safely</span>
+                                </div>
+                                <div class="tool-card">
+                                    <h5>Science Facts KB</h5>
+                                    <span>looks up structured scientific principles</span>
+                                </div>
+                                <div class="tool-card">
+                                    <h5>Web Search</h5>
+                                    <span>queries internet indices for real-time status</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="agent-terminal glass-card">
+                        <div class="terminal-header">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                            <span class="terminal-title">Agent Execution Stream - logs</span>
+                        </div>
+                        <div class="terminal-body" id="agent-terminal-logs">
+                            <div class="terminal-line system-line">> Console ready. Submit a task to begin tracing thoughts...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. PROMPT PLAYGROUND -->
+            <section id="prompt-tab" class="tab-panel">
+                <header class="panel-header">
+                    <h2>LangChain Prompt Playground & Chains</h2>
+                    <p>Interpolate prompt templates and visually chain sequential models together. Prompt 1 output automatically flows into Prompt 2 inputs.</p>
+                </header>
+
+                <div class="prompt-workspace">
+                    <div class="prompt-left-panel glass-card">
+                        <h3>Sequential Chain Settings</h3>
+                        
+                        <div class="config-group">
+                            <label for="prompt-var-genre">Variable: <code>{genre}</code></label>
+                            <input type="text" id="prompt-var-genre" value="Science Fiction">
+                        </div>
+
+                        <hr class="card-divider">
+
+                        <div class="config-group">
+                            <label>Prompt Template 1 (Character Generator)</label>
+                            <textarea id="prompt-template-1" rows="3">Generate a creative and unique name for a protagonist in a {genre} story. Output ONLY the name itself.</textarea>
+                        </div>
+
+                        <div class="arrow-down-divider">⬇ Output connects to <code>{character_name}</code></div>
+
+                        <div class="config-group">
+                            <label>Prompt Template 2 (Story Creator)</label>
+                            <textarea id="prompt-template-2" rows="3">Write a brief 1-paragraph plot outline for a movie starring {character_name}. Make it highly dramatic and exciting!</textarea>
+                        </div>
+
+                        <button id="run-chain-btn" class="btn primary" style="width: 100%; margin-top: 1rem;">Run Sequential Chain</button>
+                    </div>
+
+                    <div class="prompt-right-panel glass-card">
+                        <h3>Visual Chain Graph</h3>
+                        <div class="chain-graph" id="chain-graph-container">
+                            <!-- Node 1 -->
+                            <div class="graph-node" id="node-1">
+                                <div class="node-badge">Prompt 1 Rendered</div>
+                                <div class="node-body" id="node-1-rendered">
+                                    Generate a creative and unique name for a protagonist in a Science Fiction story. Output ONLY the name itself.
+                                </div>
+                                <div class="node-footer">
+                                    <h5>Output Name</h5>
+                                    <div class="node-output" id="node-1-output">Ready...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="connector-line"></div>
+                            
+                            <!-- Node 2 -->
+                            <div class="graph-node" id="node-2">
+                                <div class="node-badge">Prompt 2 Rendered</div>
+                                <div class="node-body" id="node-2-rendered">
+                                    Write a brief 1-paragraph plot outline for a movie starring [Output from Node 1]. Make it highly dramatic and exciting!
+                                </div>
+                                <div class="node-footer">
+                                    <h5>Final Story Outline</h5>
+                                    <div class="node-output highlight" id="node-2-output">Ready...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. MEMORY INSPECTOR -->
+            <section id="memory-tab" class="tab-panel">
+                <header class="panel-header">
+                    <h2>Memory Module Comparison</h2>
+                    <p>Compare LangChain memory retention layers side-by-side. See how prompt contexts construct over multi-turn interactions.</p>
+                </header>
+
+                <div class="memory-workspace">
+                    <div class="memory-input-card glass-card">
+                        <h3>Multi-Turn Simulation</h3>
+                        <p class="description">Submit three progressive statements to feed conversation history, then inspect how they compile in memory structures.</p>
+                        
+                        <div class="turns-form">
+                            <div class="config-group">
+                                <label for="turn-1">Turn 1 (Introduce yourself)</label>
+                                <input type="text" id="turn-1" value="Hi, my name is Arthur Dent. I really love traveling through space.">
+                            </div>
+                            <div class="config-group">
+                                <label for="turn-2">Turn 2 (State your profession)</label>
+                                <input type="text" id="turn-2" value="I am an accidental explorer searching for a good cup of tea.">
+                            </div>
+                            <div class="config-group">
+                                <label for="turn-3">Turn 3 (Ask a context question)</label>
+                                <input type="text" id="turn-3" value="What was my name and what do I like to drink?">
+                            </div>
+                            <button id="run-memory-btn" class="btn primary" style="width: 100%; margin-top: 1rem;">Run Memory Comparison</button>
+                        </div>
+                    </div>
+
+                    <div class="memory-results-container">
+                        <!-- Column 1: Buffer Memory -->
+                        <div class="memory-col glass-card">
+                            <div class="memory-badge buffer">Conversation Buffer Memory</div>
+                            <p class="col-desc">Keeps exact verbatim transcript of all dialogue turns. Complete precision but consumes larger context size over time.</p>
+                            <div class="memory-rendered-box" id="buffer-memory-view">
+                                <div class="box-placeholder">Rendered context will display here...</div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Summary Memory -->
+                        <div class="memory-col glass-card">
+                            <div class="memory-badge summary">Conversation Summary Memory</div>
+                            <p class="col-desc">Runs an LLM summarizer to keep a compressed digest of core details. Optimizes window context space but abstracts minor details.</p>
+                            <div class="memory-rendered-box" id="summary-memory-view">
+                                <div class="box-placeholder">Rendered context will display here...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Script loading -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
